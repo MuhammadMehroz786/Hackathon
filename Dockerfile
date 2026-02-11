@@ -1,11 +1,13 @@
 FROM node:22-bookworm-slim
 
-# Install Chromium, Python3, pip, and audio tools
+# Install Chromium, Python3, pip, build tools, and audio tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
     chromium \
     python3 \
     python3-pip \
     python3-venv \
+    python3-dev \
+    build-essential \
     ffmpeg \
     libsndfile1 \
     && rm -rf /var/lib/apt/lists/*
@@ -16,7 +18,7 @@ ENV CHROMIUM_PATH=/usr/bin/chromium
 
 WORKDIR /app
 
-# Install Python dependencies
+# Install Python dependencies (CPU-only torch to save ~4GB)
 COPY requirements.txt .
 RUN pip3 install --no-cache-dir --break-system-packages -r requirements.txt
 
