@@ -1,0 +1,40 @@
+{
+  "name": "sarmaya-whatsapp-ai-banking",
+  "version": "2.0.0",
+  "description": "Sarmaya - WhatsApp AI Banking for Pakistani Freelancers with Blockchain Income Verification",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node test.js",
+    "setup": "python3 -m pip install -r requirements.txt",
+    "deploy-contract": "npx hardhat run scripts/deploy.js --network amoy"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^16.3.1",
+    "ethers": "^6.16.0",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "openai": "^4.104.0",
+    "qrcode-terminal": "^0.12.0",
+    "whatsapp-web.js": "^1.23.0"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "hardhat": "^2.19.0"
+  },
+  "keywords": [
+    "whatsapp",
+    "voice",
+    "banking",
+    "ai",
+    "blockchain",
+    "freelancer",
+    "pakistan",
+    "urdu"
+  ],
+  "author": "PROCOM 2026",
+  "license": "MIT"
+}

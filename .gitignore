@@ -1,0 +1,12 @@
+node_modules/
+.wwebjs_auth/
+.wwebjs_cache/
+voice_profiles/
+temp_audio/
+*.pyc
+__pycache__/
+.env
+*.log
+artifacts/
+cache/
+typechain-types/
