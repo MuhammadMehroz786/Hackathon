@@ -345,9 +345,11 @@ export function startServer(port = 4000) {
     app.use(express.static(dashboardPath));
 
     // SPA catch-all: serve index.html for any non-API route
-    app.get('*', (req, res) => {
-        if (!req.path.startsWith('/api')) {
+    app.use((req, res, next) => {
+        if (req.method === 'GET' && !req.path.startsWith('/api')) {
             res.sendFile(path.join(dashboardPath, 'index.html'));
+        } else {
+            next();
         }
     });
 
