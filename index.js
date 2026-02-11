@@ -34,7 +34,8 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Start Express API server for web dashboard (shares same in-memory data)
-startServer(process.env.API_PORT || 4000);
+// Railway sets PORT env var; locally defaults to 4000
+startServer(process.env.PORT || process.env.API_PORT || 4000);
 
 // ============ SESSION MANAGEMENT ============
 
@@ -56,9 +57,12 @@ blockchain.initialize();
 // ============ WHATSAPP CLIENT ============
 
 const client = new Client({
-    authStrategy: new LocalAuth(),
+    authStrategy: new LocalAuth({
+        dataPath: process.env.WWEBJS_AUTH_PATH || undefined
+    }),
     puppeteer: {
         headless: true,
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',

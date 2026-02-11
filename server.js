@@ -5,6 +5,11 @@
 import express from 'express';
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 import * as banking from './banking.js';
 import * as creditScore from './creditScore.js';
 import * as blockchain from './blockchain.js';
@@ -334,14 +339,27 @@ export function startServer(port = 4000) {
         res.json(businessCase.calculatePerCustomerRevenue());
     });
 
+    // ===================== DASHBOARD (Static Files) =====================
+
+    const dashboardPath = path.join(__dirname, 'sarmaya-dashboard', 'dist');
+    app.use(express.static(dashboardPath));
+
+    // SPA catch-all: serve index.html for any non-API route
+    app.get('*', (req, res) => {
+        if (!req.path.startsWith('/api')) {
+            res.sendFile(path.join(dashboardPath, 'index.html'));
+        }
+    });
+
     // ===================== SEED & START =====================
 
     users.seedAdminUser();
 
-    app.listen(port, () => {
-        console.log(`\n🌐 Sarmaya API Server running on http://localhost:${port}`);
-        console.log(`   Register: POST http://localhost:${port}/api/auth/register`);
-        console.log(`   Login:    POST http://localhost:${port}/api/auth/login\n`);
+    const host = process.env.RAILWAY_ENVIRONMENT ? '0.0.0.0' : 'localhost';
+    app.listen(port, host, () => {
+        console.log(`\n🌐 Sarmaya API Server running on http://${host}:${port}`);
+        console.log(`   Register: POST http://${host}:${port}/api/auth/register`);
+        console.log(`   Login:    POST http://${host}:${port}/api/auth/login\n`);
     });
 
     return app;
