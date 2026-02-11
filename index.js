@@ -103,6 +103,14 @@ client.on('ready', () => {
     setInterval(() => utils.cleanupAudioFiles(30), 10 * 60 * 1000);
 });
 
+client.on('auth_failure', (msg) => {
+    console.error('⚠️ WhatsApp auth failed:', msg);
+});
+
+client.on('disconnected', (reason) => {
+    console.log('📱 WhatsApp disconnected:', reason);
+});
+
 client.on('message', async (message) => {
     try {
         await handleMessage(message);
@@ -1009,4 +1017,9 @@ setInterval(() => {
 console.log('');
 console.log('🚀 Starting Sarmaya (سرمایہ) - AI Banking for Freelancers...');
 console.log('');
-client.initialize();
+
+// Initialize WhatsApp — wrapped so API server stays alive if WhatsApp fails
+client.initialize().catch(err => {
+    console.error('⚠️ WhatsApp initialization failed (API server still running):', err.message);
+    console.log('📱 WhatsApp bot is offline. Dashboard + API are still functional.');
+});
