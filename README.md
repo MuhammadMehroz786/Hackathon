@@ -17,6 +17,8 @@
 
 <p align="center">
   <a href="https://procom-hackathon.up.railway.app"><img src="https://img.shields.io/badge/Live%20Demo-procom--hackathon.up.railway.app-F5A623?style=for-the-badge&logo=railway&logoColor=white" alt="Live Demo" /></a>
+  &nbsp;
+  <a href="https://procomhackathon.up.railway.app"><img src="https://img.shields.io/badge/Backup-procomhackathon.up.railway.app-1B4D3E?style=for-the-badge&logo=railway&logoColor=white" alt="Backup" /></a>
 </p>
 
 ---
@@ -81,7 +83,7 @@ Traditional banks require documents freelancers don't have. Sarmaya fixes this.
 
 | Layer | Technology |
 |-------|-----------|
-| **Frontend** | React 19, Tailwind CSS, Recharts, jsPDF |
+| **Frontend** | React 19, Tailwind CSS, Recharts |
 | **Backend** | Node.js 22, Express 5 |
 | **WhatsApp** | whatsapp-web.js + Puppeteer |
 | **AI/NLP** | GPT-4o (chat + function calling), Whisper (voice-to-text) |
@@ -94,7 +96,10 @@ Traditional banks require documents freelancers don't have. Sarmaya fixes this.
 
 ## Live Demo
 
-**Dashboard:** [procom-hackathon.up.railway.app](https://procom-hackathon.up.railway.app)
+| Link | URL |
+|------|-----|
+| **Primary** | [procom-hackathon.up.railway.app](https://procom-hackathon.up.railway.app) |
+| **Backup** | [procomhackathon.up.railway.app](https://procomhackathon.up.railway.app) |
 
 | Login | Credentials |
 |-------|------------|
@@ -168,9 +173,12 @@ node index.js
 cd sarmaya-dashboard && npm run dev
 ```
 
-- **API Server:** http://localhost:4000
-- **Dashboard:** http://localhost:3000
-- **WhatsApp:** Scan QR code from terminal
+> **Local URLs (development only):**
+> - **API Server:** http://localhost:4000
+> - **Dashboard:** http://localhost:3000
+> - **WhatsApp:** Scan QR code from terminal
+>
+> **Production:** Use the live links above — everything runs on Railway.
 
 ## WhatsApp Commands
 
