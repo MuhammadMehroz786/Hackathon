@@ -356,6 +356,7 @@ export function startServer(port = 4000) {
     // ===================== SEED & START =====================
 
     users.seedAdminUser();
+    banking.seedDemoCustomers();
 
     const host = process.env.RAILWAY_ENVIRONMENT ? '0.0.0.0' : 'localhost';
     app.listen(port, host, () => {
