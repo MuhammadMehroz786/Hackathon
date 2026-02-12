@@ -21,16 +21,26 @@ if not hasattr(np, 'complex'):
 import librosa
 from pathlib import Path
 
-# Fix librosa 0.10+ compatibility: resemblyzer calls resample() with positional args
+# Fix librosa 0.10+ compatibility: resemblyzer calls functions with positional args
+# but librosa 0.10 made them keyword-only
+
+# Patch resample(y, orig_sr, target_sr) -> resample(y=, orig_sr=, target_sr=)
 _original_resample = librosa.resample
 def _patched_resample(y=None, *args, orig_sr=None, target_sr=None, **kwargs):
-    # Handle old-style positional call: resample(y, orig_sr, target_sr)
     if args and orig_sr is None:
         orig_sr = args[0]
         if len(args) > 1 and target_sr is None:
             target_sr = args[1]
     return _original_resample(y=y, orig_sr=orig_sr, target_sr=target_sr, **kwargs)
 librosa.resample = _patched_resample
+
+# Patch melspectrogram(y, sr, ...) -> melspectrogram(y=, sr=, ...)
+_original_melspectrogram = librosa.feature.melspectrogram
+def _patched_melspectrogram(y=None, *args, sr=None, **kwargs):
+    if args and sr is None:
+        sr = args[0]
+    return _original_melspectrogram(y=y, sr=sr, **kwargs)
+librosa.feature.melspectrogram = _patched_melspectrogram
 
 # Suppress Resemblyzer's "Loaded the voice encoder model..." print
 _real_stdout = sys.stdout
