@@ -1,6 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   LayoutDashboard,
   Wallet,
@@ -30,7 +28,6 @@ import {
   BarChart3,
   BrainCircuit,
   Globe,
-  Download,
   Star,
   MapPin,
   Calendar,
@@ -155,331 +152,6 @@ const LoadingSkeleton = () => (
     </div>
   </div>
 );
-
-// ============ PDF GENERATION HELPERS ============
-
-const PDF_GREEN = [27, 77, 62];
-const PDF_GOLD = [245, 166, 35];
-const PDF_GRAY = [100, 100, 100];
-
-function addPdfHeader(doc, title, subtitle) {
-  // Green header bar
-  doc.setFillColor(...PDF_GREEN);
-  doc.rect(0, 0, 210, 35, 'F');
-  // Gold accent line
-  doc.setFillColor(...PDF_GOLD);
-  doc.rect(0, 35, 210, 2, 'F');
-  // Logo text
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(22);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Sarmaya', 14, 18);
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  doc.text('by JS Bank', 14, 25);
-  // Title
-  doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  doc.text(title, 196, 16, { align: 'right' });
-  if (subtitle) {
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    doc.text(subtitle, 196, 24, { align: 'right' });
-  }
-  doc.setTextColor(0, 0, 0);
-  return 42; // y position after header
-}
-
-function addPdfFooter(doc) {
-  const pages = doc.internal.getNumberOfPages();
-  for (let i = 1; i <= pages; i++) {
-    doc.setPage(i);
-    doc.setFillColor(...PDF_GREEN);
-    doc.rect(0, 285, 210, 12, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(7);
-    doc.text('Sarmaya by JS Bank | Confidential | Generated ' + new Date().toLocaleDateString('en-PK'), 14, 291);
-    doc.text(`Page ${i}/${pages}`, 196, 291, { align: 'right' });
-  }
-}
-
-function generateCreditScorePDF(data) {
-  const doc = new jsPDF();
-  let y = addPdfHeader(doc, 'Credit Score Report', 'Alternative Credit Assessment');
-
-  const s = data.creditScore;
-  // Score circle area
-  doc.setFillColor(240, 253, 244);
-  doc.roundedRect(14, y, 85, 50, 4, 4, 'F');
-  doc.setFontSize(36);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...PDF_GREEN);
-  doc.text(String(s.score), 56, y + 28, { align: 'center' });
-  doc.setFontSize(11);
-  doc.text(s.range, 56, y + 38, { align: 'center' });
-
-  // Summary box
-  doc.setTextColor(0, 0, 0);
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  const loan = data.loanEligibility || {};
-  const summaryX = 110;
-  doc.setFont('helvetica', 'bold');
-  doc.text('Loan Eligibility', summaryX, y + 10);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-  doc.text(`Max Amount: ${loan.maxLoanAmountFormatted || 'N/A'}`, summaryX, y + 18);
-  doc.text(`Interest Rate: ${loan.interestRate || 'N/A'}`, summaryX, y + 25);
-  doc.text(`Tenure: ${loan.tenure || 'N/A'}`, summaryX, y + 32);
-  doc.text(`Type: ${loan.type || 'N/A'}`, summaryX, y + 39);
-
-  y += 58;
-
-  // Score factors table
-  if (data.components && data.components.length > 0) {
-    doc.autoTable({
-      startY: y,
-      head: [['Factor', 'Score', 'Weight', 'Detail']],
-      body: data.components.map(c => [c.factor, `${c.score}/100`, c.weight, c.explanation]),
-      headStyles: { fillColor: PDF_GREEN, fontSize: 9 },
-      bodyStyles: { fontSize: 8 },
-      alternateRowStyles: { fillColor: [245, 250, 248] },
-      margin: { left: 14, right: 14 },
-    });
-    y = doc.lastAutoTable.finalY + 10;
-  }
-
-  // Recommendations
-  if (data.recommendations && data.recommendations.length > 0) {
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Improvement Tips', 14, y);
-    y += 6;
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    data.recommendations.forEach(r => {
-      doc.text(`• ${r.tip} (Impact: ${r.impact})`, 18, y);
-      y += 6;
-    });
-  }
-
-  addPdfFooter(doc);
-  doc.save('Sarmaya_Credit_Score_Report.pdf');
-}
-
-function generateIncomeProofPDF(proof, bcProof) {
-  const doc = new jsPDF();
-  let y = addPdfHeader(doc, 'Certificate of Freelance Income', 'Blockchain Verified');
-
-  // Certificate border
-  doc.setDrawColor(...PDF_GREEN);
-  doc.setLineWidth(0.5);
-  doc.rect(10, y - 2, 190, 110, 'S');
-
-  // Freelancer info
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...PDF_GREEN);
-  doc.text('Income Verification Certificate', 105, y + 10, { align: 'center' });
-  doc.setDrawColor(...PDF_GOLD);
-  doc.setLineWidth(1);
-  doc.line(50, y + 13, 160, y + 13);
-
-  doc.setTextColor(0, 0, 0);
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  const fields = [
-    ['Freelancer', proof.freelancerName],
-    ['Account', proof.accountNumber],
-    ['CNIC', proof.cnic],
-    ['Period', proof.period],
-    ['SBP Purpose Code', proof.sbpPurposeCode],
-  ];
-  let fy = y + 22;
-  fields.forEach(([label, val]) => {
-    doc.setFont('helvetica', 'bold');
-    doc.text(`${label}:`, 18, fy);
-    doc.setFont('helvetica', 'normal');
-    doc.text(String(val || ''), 60, fy);
-    fy += 7;
-  });
-
-  // Earnings summary
-  const e = proof.earnings;
-  doc.setFont('helvetica', 'bold');
-  doc.text('Total USD:', 110, y + 22);
-  doc.text('Total PKR:', 110, y + 29);
-  doc.text('Avg Monthly:', 110, y + 36);
-  doc.text('Consistency:', 110, y + 43);
-  doc.setFont('helvetica', 'normal');
-  doc.text(`$${e.totalUSD}`, 155, y + 22);
-  doc.text(`PKR ${Number(e.totalPKR).toLocaleString()}`, 155, y + 29);
-  doc.text(`$${e.avgMonthlyUSD}/mo`, 155, y + 36);
-  doc.text(String(proof.incomeConsistency), 155, y + 43);
-
-  // Platforms
-  if (proof.platforms && proof.platforms.length > 0) {
-    doc.autoTable({
-      startY: y + 60,
-      head: [['Platform', 'Rating', 'Total Earned', 'Active Months']],
-      body: proof.platforms.map(p => [p.name, String(p.rating), p.totalEarned, String(p.activeMonths)]),
-      headStyles: { fillColor: PDF_GREEN, fontSize: 8 },
-      bodyStyles: { fontSize: 8 },
-      margin: { left: 18, right: 18 },
-      tableWidth: 174,
-    });
-  }
-
-  // Blockchain verification
-  if (bcProof && bcProof.success) {
-    const by = y + 115;
-    doc.setFillColor(240, 253, 244);
-    doc.roundedRect(14, by, 182, 22, 3, 3, 'F');
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...PDF_GREEN);
-    doc.text('Blockchain Verified', 20, by + 8);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7);
-    doc.text(`Network: ${bcProof.network || 'Polygon Amoy'} | Tx: ${bcProof.txHash || 'N/A'}`, 20, by + 16);
-  }
-
-  addPdfFooter(doc);
-  doc.save('Sarmaya_Income_Proof_Certificate.pdf');
-}
-
-function generateTransactionsPDF(transactions) {
-  const doc = new jsPDF();
-  let y = addPdfHeader(doc, 'Transaction Statement', new Date().toLocaleDateString('en-PK'));
-
-  const totalIn = transactions.filter(t => t.type === 'CREDIT').reduce((s, t) => s + t.amount, 0);
-  const totalOut = transactions.filter(t => t.type === 'DEBIT').reduce((s, t) => s + t.amount, 0);
-
-  doc.setFontSize(9);
-  doc.text(`Total Income: PKR ${totalIn.toLocaleString()}   |   Total Spent: PKR ${totalOut.toLocaleString()}   |   Net: PKR ${(totalIn - totalOut).toLocaleString()}`, 14, y);
-  y += 8;
-
-  doc.autoTable({
-    startY: y,
-    head: [['Date', 'Description', 'Type', 'Amount (PKR)', 'Category']],
-    body: transactions.map(t => [
-      new Date(t.timestamp).toLocaleDateString('en-PK'),
-      t.description,
-      t.type,
-      t.amount.toLocaleString(),
-      t.category || '—'
-    ]),
-    headStyles: { fillColor: PDF_GREEN, fontSize: 8 },
-    bodyStyles: { fontSize: 7 },
-    alternateRowStyles: { fillColor: [245, 250, 248] },
-    margin: { left: 14, right: 14 },
-    didParseCell: (data) => {
-      if (data.section === 'body' && data.column.index === 2) {
-        data.cell.styles.textColor = data.cell.raw === 'CREDIT' ? [16, 185, 129] : [239, 68, 68];
-        data.cell.styles.fontStyle = 'bold';
-      }
-    }
-  });
-
-  addPdfFooter(doc);
-  doc.save('Sarmaya_Transaction_Statement.pdf');
-}
-
-function generateCustomersExportPDF(customers) {
-  const doc = new jsPDF('landscape');
-  // Landscape header
-  doc.setFillColor(...PDF_GREEN);
-  doc.rect(0, 0, 297, 30, 'F');
-  doc.setFillColor(...PDF_GOLD);
-  doc.rect(0, 30, 297, 2, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(18);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Sarmaya', 14, 15);
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
-  doc.text('by JS Bank', 14, 21);
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Customer Portfolio Report', 283, 14, { align: 'right' });
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
-  doc.text(`Generated: ${new Date().toLocaleDateString('en-PK')} | ${customers.length} customers`, 283, 22, { align: 'right' });
-  doc.setTextColor(0, 0, 0);
-
-  doc.autoTable({
-    startY: 36,
-    head: [['Name', 'Phone', 'City', 'Balance (PKR)', 'Credit Score', 'Risk', 'Platforms', 'Joined']],
-    body: customers.map(c => [
-      c.name, c.phone, c.city,
-      c.balance.toLocaleString(),
-      String(c.score), c.risk,
-      c.platforms.join(', '),
-      c.joinedDate
-    ]),
-    headStyles: { fillColor: PDF_GREEN, fontSize: 8 },
-    bodyStyles: { fontSize: 7 },
-    alternateRowStyles: { fillColor: [245, 250, 248] },
-    margin: { left: 10, right: 10 },
-    didParseCell: (data) => {
-      if (data.section === 'body' && data.column.index === 5) {
-        const r = data.cell.raw;
-        data.cell.styles.textColor = r === 'Low' ? [16, 185, 129] : r === 'Medium' ? [245, 158, 11] : [239, 68, 68];
-        data.cell.styles.fontStyle = 'bold';
-      }
-    }
-  });
-
-  // Footer
-  const pages = doc.internal.getNumberOfPages();
-  for (let i = 1; i <= pages; i++) {
-    doc.setPage(i);
-    doc.setFillColor(...PDF_GREEN);
-    doc.rect(0, 200, 297, 10, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(7);
-    doc.text('Sarmaya by JS Bank | Confidential | Admin Report', 14, 206);
-    doc.text(`Page ${i}/${pages}`, 283, 206, { align: 'right' });
-  }
-
-  doc.save('Sarmaya_Customer_Portfolio.pdf');
-}
-
-function generateCompliancePDF(checks) {
-  const doc = new jsPDF();
-  let y = addPdfHeader(doc, 'SBP Compliance Report', 'Regulatory Framework for Digital Banks');
-
-  const totalChecks = checks.reduce((s, c) => s + c.items.length, 0);
-  const passed = checks.reduce((s, c) => s + c.items.filter(i => i.status === 'pass').length, 0);
-
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...PDF_GREEN);
-  doc.text(`Overall Status: ${passed}/${totalChecks} PASSED`, 14, y);
-  y += 10;
-
-  checks.forEach(section => {
-    doc.autoTable({
-      startY: y,
-      head: [[section.category, 'Status', 'Evidence']],
-      body: section.items.map(item => [item.name, item.status === 'pass' ? 'PASS' : 'WARNING', item.detail]),
-      headStyles: { fillColor: PDF_GREEN, fontSize: 9 },
-      bodyStyles: { fontSize: 8 },
-      alternateRowStyles: { fillColor: [245, 250, 248] },
-      margin: { left: 14, right: 14 },
-      didParseCell: (data) => {
-        if (data.section === 'body' && data.column.index === 1) {
-          data.cell.styles.textColor = data.cell.raw === 'PASS' ? [16, 185, 129] : [245, 158, 11];
-          data.cell.styles.fontStyle = 'bold';
-        }
-      }
-    });
-    y = doc.lastAutoTable.finalY + 8;
-  });
-
-  addPdfFooter(doc);
-  doc.save('Sarmaya_SBP_Compliance_Report.pdf');
-}
 
 /**
  * ==============================================================================
@@ -1000,7 +672,6 @@ const CreditScorePage = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">Credit Health</h1>
-        <Button variant="secondary" className="text-sm" onClick={() => generateCreditScorePDF(data)}><Download size={16} /> Download Report</Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -1098,7 +769,6 @@ const TransactionsPage = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl font-bold text-gray-900">Transactions</h1>
-        <Button variant="secondary" className="text-sm" onClick={() => generateTransactionsPDF(txns)}><Download size={16} /> Export PDF</Button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -1317,7 +987,6 @@ const IncomeProofPage = () => {
           <Button variant="secondary" className="text-sm" onClick={handleGenerate}>
             {generating ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-emerald-600"></div> : <><GitBranch size={16}/> Generate New</>}
           </Button>
-          <Button variant="secondary" className="text-sm" onClick={() => generateIncomeProofPDF(proof, bcProof)}><Download size={16} /> Download PDF</Button>
         </div>
       </div>
 
@@ -1918,7 +1587,6 @@ const AdminDashboard = () => {
                <span className="font-bold text-gray-900">94%</span>
              </div>
              <div className="pt-4 border-t border-gray-100">
-               <Button variant="secondary" className="w-full text-xs">Generate SBP Report</Button>
              </div>
            </div>
          </Card>
@@ -1977,7 +1645,6 @@ const AdminCustomersPage = ({ setView }) => {
           <h1 className="text-2xl font-bold text-gray-900">Customers</h1>
           <p className="text-sm text-gray-500">{customers.length} total registered freelancers</p>
         </div>
-        <Button variant="secondary" className="text-sm" onClick={() => generateCustomersExportPDF(customers)}><Download size={16} /> Export PDF</Button>
       </div>
 
       <Card>
@@ -2365,7 +2032,6 @@ const AdminCompliancePage = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl font-bold text-gray-900">Compliance Dashboard</h1>
-        <Button variant="secondary" className="text-sm" onClick={() => generateCompliancePDF(checks)}><Download size={16} /> Generate SBP Report</Button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
