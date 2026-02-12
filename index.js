@@ -15,6 +15,7 @@
 import pkg from 'whatsapp-web.js';
 const { Client, LocalAuth, MessageMedia } = pkg;
 import qrcode from 'qrcode-terminal';
+import QRCode from 'qrcode';
 import * as banking from './banking.js';
 import * as ai from './ai.js';
 import * as blockchain from './blockchain.js';
