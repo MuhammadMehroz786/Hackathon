@@ -9,6 +9,15 @@ import json
 import os
 import io
 import numpy as np
+# Fix numpy 1.24+ compatibility: restore removed aliases used by resemblyzer
+if not hasattr(np, 'bool'):
+    np.bool = np.bool_
+if not hasattr(np, 'int'):
+    np.int = np.int_
+if not hasattr(np, 'float'):
+    np.float = np.float64
+if not hasattr(np, 'complex'):
+    np.complex = np.complex128
 import librosa
 from pathlib import Path
 
